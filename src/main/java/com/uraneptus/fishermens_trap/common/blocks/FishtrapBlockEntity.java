@@ -10,16 +10,22 @@ import com.uraneptus.fishermens_trap.core.other.FTItemTags;
 import com.uraneptus.fishermens_trap.core.registry.FTBlockEntityType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.Nameable;
+import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -35,18 +41,19 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.RangedWrapper;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.wrapper.RangedWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
 
+@EventBusSubscriber(modid = FishermensTrap.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class FishtrapBlockEntity extends BlockEntity implements MenuProvider, Nameable {
     public static final Component FISHTRAP_NAME = Component.translatable("fishermens_trap.container.fishtrap");
     private final FTItemStackHandler handler = new FTItemStackHandler() {
@@ -55,8 +62,8 @@ public class FishtrapBlockEntity extends BlockEntity implements MenuProvider, Na
             setChanged();
         }
     };
-    private final LazyOptional<IItemHandler> input = LazyOptional.of(() -> new RangedWrapper(this.handler, 0, 1));
-    private final LazyOptional<IItemHandler> output = LazyOptional.of(() -> new RangedWrapper(this.handler, 1, 10));
+    private final IItemHandler input = new RangedWrapper(this.handler, 0, 1);
+    private final IItemHandler output = new RangedWrapper(this.handler, 1, 10);
     private int tickCounter = 0;
 
     public FishtrapBlockEntity(BlockPos pPos, BlockState pBlockState) {
@@ -64,22 +71,22 @@ public class FishtrapBlockEntity extends BlockEntity implements MenuProvider, Na
     }
 
     @Override
-    protected void saveAdditional(CompoundTag pTag) {
-        super.saveAdditional(pTag);
-        pTag.put("handler", this.handler.serializeNBT());
+    protected void saveAdditional(CompoundTag pTag, HolderLookup.Provider pRegistries) {
+        super.saveAdditional(pTag, pRegistries);
+        pTag.put("handler", this.handler.serializeNBT(pRegistries));
         pTag.putInt("tickCounter", tickCounter);
     }
 
     @Override
-    public void load(CompoundTag pTag) {
-        super.load(pTag);
-        this.handler.deserializeNBT(pTag.getCompound("handler"));
+    public void loadAdditional(CompoundTag pTag, HolderLookup.Provider pRegistries) {
+        super.loadAdditional(pTag, pRegistries);
+        this.handler.deserializeNBT(pRegistries, pTag.getCompound("handler"));
         this.tickCounter = pTag.getInt("tickCounter");
     }
 
-    private CompoundTag saveItems(CompoundTag compound) {
-        super.saveAdditional(compound);
-        compound.put("handler", this.handler.serializeNBT());
+    private CompoundTag saveItems(CompoundTag compound, HolderLookup.Provider pRegistries) {
+        super.saveAdditional(compound, pRegistries);
+        compound.put("handler", this.handler.serializeNBT(pRegistries));
         return compound;
     }
 
@@ -89,13 +96,13 @@ public class FishtrapBlockEntity extends BlockEntity implements MenuProvider, Na
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return this.saveItems(new CompoundTag());
+    public CompoundTag getUpdateTag(HolderLookup.Provider pRegistries) {
+        return this.saveItems(new CompoundTag(), pRegistries);
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
-        this.load(packet.getTag());
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider lookupProvider) {
+        this.loadAdditional(tag, lookupProvider);
     }
 
     public static Pair<Integer, Integer> getMinMaxCounterInts() {
@@ -115,16 +122,16 @@ public class FishtrapBlockEntity extends BlockEntity implements MenuProvider, Na
                             .withParameter(LootContextParams.ORIGIN, new Vec3(pPos.getX(), pPos.getY(), pPos.getZ()))
                             .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
                             .withParameter(LootContextParams.BLOCK_ENTITY, pBlockEntity)
-                            .create(LootContextParamSets.FISHING);
+                            .create(LootContextParamSets.EMPTY);
                     ItemStack itemInBaitSlot = pBlockEntity.handler.getStackInSlot(0);
                     LootTable loottable;
 
                     if (itemInBaitSlot.is(FTItemTags.FISH_BAITS) && !itemInBaitSlot.is(Items.AIR)) {
-                        ResourceLocation registryName = ForgeRegistries.ITEMS.getKey(itemInBaitSlot.getItem());
+                        ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(itemInBaitSlot.getItem());
                         ResourceLocation lootTableLocation = FishermensTrap.modPrefix("gameplay/fishtrap_fishing/" + Objects.requireNonNull(registryName).getNamespace() + "/" + registryName.getPath());
-                        loottable = pLevel.getServer().getLootData().getLootTable(lootTableLocation);
+                        loottable = pLevel.getServer().reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, lootTableLocation));
                     } else {
-                        loottable = pLevel.getServer().getLootData().getLootTable(BuiltInLootTables.FISHING_JUNK);
+                        loottable = pLevel.getServer().reloadableRegistries().getLootTable(BuiltInLootTables.FISHING_JUNK);
                     }
                     List<ItemStack> list = loottable.getRandomItems(lootparams);
                     pBlockEntity.handler.handleItemsInsertion(list, itemInBaitSlot, random);
@@ -150,14 +157,17 @@ public class FishtrapBlockEntity extends BlockEntity implements MenuProvider, Na
         return false;
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (cap.equals(ForgeCapabilities.ITEM_HANDLER)) {
-            if (side != null) {
-                return side.equals(Direction.UP) ? input.cast() : side.equals(Direction.DOWN) ? output.cast() : LazyOptional.empty();
-            }
-        }
-        return super.getCapability(cap, side);
+
+    @SubscribeEvent
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, FTBlockEntityType.FISHTRAP.get(),
+                (be, context) -> {
+                    if (context == Direction.UP) {
+                        return be.input;
+                    }
+                    return be.output;
+                }
+        );
     }
 
     public FTItemStackHandler getInventory() {

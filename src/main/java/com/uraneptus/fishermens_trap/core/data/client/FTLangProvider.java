@@ -3,7 +3,7 @@ package com.uraneptus.fishermens_trap.core.data.client;
 import com.uraneptus.fishermens_trap.FishermensTrap;
 import com.uraneptus.fishermens_trap.core.registry.FTBlocks;
 import net.minecraft.data.PackOutput;
-import net.minecraftforge.common.data.LanguageProvider;
+import net.neoforged.neoforge.common.data.LanguageProvider;
 
 public class FTLangProvider extends LanguageProvider {
 

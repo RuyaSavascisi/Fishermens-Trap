@@ -3,12 +3,12 @@ package com.uraneptus.fishermens_trap.common.blocks.container;
 import com.uraneptus.fishermens_trap.FTConfig;
 import com.uraneptus.fishermens_trap.core.other.FTItemTags;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -35,11 +35,11 @@ public class FTItemStackHandler extends ItemStackHandler {
                     }
                     if (random.nextFloat() < FTConfig.FISH_BUCKET_CHANCE.get()) {
                         if (stackInSlot.is(Items.WATER_BUCKET)) {
-                            ResourceLocation regName =  ForgeRegistries.ITEMS.getKey(itemStack.getItem());
-                            ResourceLocation bucketFishLocation = new ResourceLocation(Objects.requireNonNull(regName).getNamespace(), regName.getPath() + "_bucket");
-                            if (ForgeRegistries.ITEMS.containsKey(bucketFishLocation)) {
+                            ResourceLocation regName =  BuiltInRegistries.ITEM.getKey(itemStack.getItem());
+                            ResourceLocation bucketFishLocation = ResourceLocation.fromNamespaceAndPath(Objects.requireNonNull(regName).getNamespace(), regName.getPath() + "_bucket");
+                            if (BuiltInRegistries.ITEM.containsKey(bucketFishLocation)) {
                                 stackInSlot.shrink(1);
-                                itemStack = insertItem(i, Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(bucketFishLocation)).getDefaultInstance(), false);
+                                itemStack = insertItem(i, Objects.requireNonNull(BuiltInRegistries.ITEM.get(bucketFishLocation)).getDefaultInstance(), false);
                                 baitItem.shrink(1);
                                 if (itemStack.isEmpty()) {
                                     break;
@@ -53,11 +53,8 @@ public class FTItemStackHandler extends ItemStackHandler {
     }
 
     @Override
-    public int getSlotLimit(int slot) {
-        if (slot != 0) {
-            return 1;
-        }
-        return getStackInSlot(slot).getMaxStackSize();
+    protected int getStackLimit(int slot, ItemStack stack) {
+        return slot != 0 ? 1 : stack.getMaxStackSize();
     }
 
     @Override

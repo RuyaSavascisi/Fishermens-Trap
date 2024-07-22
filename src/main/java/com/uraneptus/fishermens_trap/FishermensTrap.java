@@ -20,48 +20,37 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.slf4j.Logger;
 
 import java.util.concurrent.CompletableFuture;
 
 @Mod(FishermensTrap.MOD_ID)
-@Mod.EventBusSubscriber(modid = FishermensTrap.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class FishermensTrap {
     public static final String MOD_ID = "fishermens_trap";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public static ResourceLocation modPrefix(String path) {
-        return new ResourceLocation(FishermensTrap.MOD_ID, path);
+        return ResourceLocation.fromNamespaceAndPath(FishermensTrap.MOD_ID, path);
     }
 
-    public FishermensTrap() {
-        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-        bus.addListener(this::clientSetup);
+    public FishermensTrap(IEventBus bus, ModContainer modContainer) {
         bus.addListener(this::gatherData);
-
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, FTConfig.COMMON);
 
         FTBlocks.BLOCKS.register(bus);
         FTItems.ITEMS.register(bus);
-        FTBlockEntityType.BLOCK_ENTITY_TYPE.register(bus);
+        FTBlockEntityType.BLOCK_ENTITIES.register(bus);
         FTMenuType.MENU.register(bus);
 
-        MinecraftForge.EVENT_BUS.register(this);
-    }
-
-    private void clientSetup(final FMLClientSetupEvent event) {
-        event.enqueueWork(() -> {
-            MenuScreens.register(FTMenuType.FISHTRAP_MENU.get(), FishtrapScreen::new);
-        });
+        modContainer.registerConfig(ModConfig.Type.COMMON, FTConfig.COMMON);
     }
 
     public void gatherData(GatherDataEvent event) {
@@ -75,13 +64,13 @@ public class FishermensTrap {
         generator.addProvider(includeClient, new FTBlockStateProvider(packOutput, fileHelper));
         generator.addProvider(includeClient, new FTItemModelProvider(packOutput, fileHelper));
         generator.addProvider(includeClient, new FTLangProvider(packOutput));
-        generator.addProvider(includeClient, new FTSpriteSourceProvider(packOutput, fileHelper));
+        generator.addProvider(includeClient, new FTSpriteSourceProvider(packOutput, lookupProvider, fileHelper));
 
         FTBlockTagsProvider blockTagProvider = new FTBlockTagsProvider(packOutput, lookupProvider, fileHelper);
         generator.addProvider(includeServer, blockTagProvider);
         generator.addProvider(includeServer, new FTItemTagsProvider(packOutput, lookupProvider, blockTagProvider.contentsGetter(), fileHelper));
         generator.addProvider(includeServer, new FTBiomeTagsProvider(packOutput, lookupProvider, fileHelper));
-        generator.addProvider(includeServer, new FTLootTablesProvider(packOutput));
-        generator.addProvider(includeServer, new FTRecipeProvider(packOutput));
+        generator.addProvider(includeServer, new FTLootTablesProvider(packOutput, lookupProvider));
+        generator.addProvider(includeServer, new FTRecipeProvider(packOutput, lookupProvider));
     }
 }

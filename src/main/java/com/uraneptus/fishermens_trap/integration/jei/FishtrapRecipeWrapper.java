@@ -6,6 +6,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 public class FishtrapRecipeWrapper {
     public ItemStack input;
     public Ingredient output;
+
     public FishtrapRecipeWrapper(ItemStack input, Ingredient output) {
         this.input = input;
         this.output = output;

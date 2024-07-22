@@ -1,5 +1,6 @@
 package com.uraneptus.fishermens_trap.common.blocks;
 
+import com.mojang.serialization.MapCodec;
 import com.uraneptus.fishermens_trap.core.registry.FTBlockEntityType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -27,10 +28,10 @@ import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 public class FishtrapBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
+    public static final MapCodec<FishtrapBlock> CODEC = simpleCodec(FishtrapBlock::new);
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty HANGING = BlockStateProperties.HANGING;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
@@ -41,13 +42,20 @@ public class FishtrapBlock extends BaseEntityBlock implements SimpleWaterloggedB
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide) {
             BlockEntity tileEntity = level.getBlockEntity(pos);
             if (tileEntity instanceof FishtrapBlockEntity fishtrapBlockEntity) {
-                    NetworkHooks.openScreen((ServerPlayer)player, fishtrapBlockEntity, pos);
+                if (player instanceof ServerPlayer serverPlayer) {
+                    serverPlayer.openMenu(fishtrapBlockEntity, pos);
                 }
             }
+        }
         return InteractionResult.SUCCESS;
     }
 

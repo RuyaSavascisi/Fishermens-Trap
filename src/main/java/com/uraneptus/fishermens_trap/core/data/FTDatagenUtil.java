@@ -1,11 +1,11 @@
 package com.uraneptus.fishermens_trap.core.data;
 
 import com.uraneptus.fishermens_trap.FishermensTrap;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.client.model.generators.ModelProvider;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.model.generators.ModelProvider;
 
 @SuppressWarnings("unused")
 public class FTDatagenUtil {
@@ -16,11 +16,11 @@ public class FTDatagenUtil {
     public static final ResourceLocation HANDHELD = vanillaItemLocation("handheld");
 
     public static String name(Block block) {
-        return ForgeRegistries.BLOCKS.getKey(block).getPath();
+        return BuiltInRegistries.BLOCK.getKey(block).getPath();
     }
 
     public static String name(Item item) {
-        return ForgeRegistries.ITEMS.getKey(item).getPath();
+        return BuiltInRegistries.ITEM.getKey(item).getPath();
     }
 
     public static ResourceLocation modBlockLocation(String path) {
@@ -32,10 +32,10 @@ public class FTDatagenUtil {
     }
 
     public static ResourceLocation vanillaBlockLocation(String path) {
-        return new ResourceLocation(ModelProvider.BLOCK_FOLDER + "/" + path);
+        return ResourceLocation.withDefaultNamespace(ModelProvider.BLOCK_FOLDER + "/" + path);
     }
 
     public static ResourceLocation vanillaItemLocation(String path) {
-        return new ResourceLocation(ModelProvider.ITEM_FOLDER + "/" + path);
+        return ResourceLocation.withDefaultNamespace(ModelProvider.ITEM_FOLDER + "/" + path);
     }
 }

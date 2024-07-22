@@ -14,7 +14,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
 
 public class FishtrapMenu extends AbstractContainerMenu {
     public final FTItemStackHandler inventory;
@@ -57,8 +57,6 @@ public class FishtrapMenu extends AbstractContainerMenu {
         }
 
     }
-
-
 
     @Override
     public ItemStack quickMoveStack(Player pPlayer, int pIndex) {

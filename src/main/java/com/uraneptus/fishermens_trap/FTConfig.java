@@ -1,15 +1,16 @@
 package com.uraneptus.fishermens_trap;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class FTConfig {
-    public static final ForgeConfigSpec.ConfigValue<Integer> MIN_TICKS_TO_FISH;
-    public static final ForgeConfigSpec.ConfigValue<Integer> MAX_TICKS_TO_FISH;
-    public static final ForgeConfigSpec.DoubleValue FISH_BUCKET_CHANCE;
-    public static final ForgeConfigSpec COMMON;
+    public static final ModConfigSpec.ConfigValue<Integer> MIN_TICKS_TO_FISH;
+    public static final ModConfigSpec.ConfigValue<Integer> MAX_TICKS_TO_FISH;
+    public static final ModConfigSpec.DoubleValue FISH_BUCKET_CHANCE;
+    public static final ModConfigSpec COMMON;
 
     static {
-        ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder COMMON_BUILDER = new ModConfigSpec.Builder();
 
         COMMON_BUILDER.push("Fish Trap Fishing");
         MIN_TICKS_TO_FISH = COMMON_BUILDER.comment("The minimum amount of ticks that have to pass until the next item can be fished using the Fish Trap. Value must be below max value. (default = 4800)").define("min ticks", 4800);
