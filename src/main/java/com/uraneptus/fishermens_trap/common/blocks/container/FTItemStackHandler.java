@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
@@ -23,28 +24,41 @@ public class FTItemStackHandler extends ItemStackHandler {
     public void handleItemsInsertion(List<ItemStack> list, ItemStack baitItem, RandomSource random) {
         for (ItemStack itemStack : list) {
             if (!itemStack.isEmpty()) {
-                for (int i = 0; i < getSlots(); i++) {
-                    ItemStack stackInSlot = getStackInSlot(i);
-                    if (stackInSlot.isEmpty()) {
+                if (FTConfig.FULL_STACK_CATCH.get()) {
+                    if (ItemHandlerHelper.insertItemStacked(this, itemStack, false).isEmpty()) {
+                        baitItem.shrink(1);
+                    }
+                    handleNonStackFilling(itemStack, baitItem, random);
+                } else {
+                    handleNonStackFilling(itemStack, baitItem, random);
+                }
+            }
+        }
+    }
 
-                        itemStack = insertItem(i, itemStack, false);
+    public void handleNonStackFilling(ItemStack itemStack, ItemStack baitItem, RandomSource random) {
+        for (int i = 0; i < getSlots(); i++) {
+            ItemStack stackInSlot = getStackInSlot(i);
+            if (!FTConfig.FULL_STACK_CATCH.get()) {
+                if (stackInSlot.isEmpty()) {
+
+                    itemStack = insertItem(i, itemStack, false);
+                    baitItem.shrink(1);
+                    if (itemStack.isEmpty()) {
+                        break;
+                    }
+                }
+            }
+            if (random.nextFloat() < FTConfig.FISH_BUCKET_CHANCE.get()) {
+                if (stackInSlot.is(Items.WATER_BUCKET)) {
+                    ResourceLocation regName =  ForgeRegistries.ITEMS.getKey(itemStack.getItem());
+                    ResourceLocation bucketFishLocation = new ResourceLocation(Objects.requireNonNull(regName).getNamespace(), regName.getPath() + "_bucket");
+                    if (ForgeRegistries.ITEMS.containsKey(bucketFishLocation)) {
+                        stackInSlot.shrink(1);
+                        itemStack = insertItem(i, Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(bucketFishLocation)).getDefaultInstance(), false);
                         baitItem.shrink(1);
                         if (itemStack.isEmpty()) {
                             break;
-                        }
-                    }
-                    if (random.nextFloat() < FTConfig.FISH_BUCKET_CHANCE.get()) {
-                        if (stackInSlot.is(Items.WATER_BUCKET)) {
-                            ResourceLocation regName = ForgeRegistries.ITEMS.getKey(itemStack.getItem());
-                            ResourceLocation bucketFishLocation = new ResourceLocation(Objects.requireNonNull(regName).getNamespace(), regName.getPath() + "_bucket");
-                            if (ForgeRegistries.ITEMS.containsKey(bucketFishLocation)) {
-                                stackInSlot.shrink(1);
-                                itemStack = insertItem(i, Objects.requireNonNull(ForgeRegistries.ITEMS.getValue(bucketFishLocation)).getDefaultInstance(), false);
-                                baitItem.shrink(1);
-                                if (itemStack.isEmpty()) {
-                                    break;
-                                }
-                            }
                         }
                     }
                 }
@@ -54,7 +68,7 @@ public class FTItemStackHandler extends ItemStackHandler {
 
     @Override
     public int getSlotLimit(int slot) {
-        if (slot != 0) {
+        if (slot != 0 && !FTConfig.FULL_STACK_CATCH.get()) {
             return 1;
         }
         return getStackInSlot(slot).getMaxStackSize();
