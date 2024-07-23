@@ -16,6 +16,10 @@ public class FTLangProvider extends LanguageProvider {
         add(FishermensTrap.MOD_ID + ".container.fishtrap", "Fish Trap");
         addBlock(FTBlocks.FISHTRAP, "Fish Trap");
         add(FishermensTrap.MOD_ID + ".jei.fishtrap_fishing", "Fish Trap Fishing");
+        add("fishermens_trap.configuration.max_ticks", "Min ticks");
+        add("fishermens_trap.configuration.min_ticks", "Max ticks");
+        add("fishermens_trap.configuration.chance", "Chance");
+        add("fishermens_trap.configuration.enable_full_stack_catch", "Fish trap catches full stack");
     }
 
 }

@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,28 +24,41 @@ public class FTItemStackHandler extends ItemStackHandler {
     public void handleItemsInsertion(List<ItemStack> list, ItemStack baitItem, RandomSource random) {
         for (ItemStack itemStack : list) {
             if (!itemStack.isEmpty()) {
-                for (int i = 0; i < getSlots(); i++) {
-                    ItemStack stackInSlot = getStackInSlot(i);
-                    if (stackInSlot.isEmpty()) {
+                if (FTConfig.FULL_STACK_CATCH.get()) {
+                    if (ItemHandlerHelper.insertItemStacked(this, itemStack, false).isEmpty()) {
+                        baitItem.shrink(1);
+                    }
+                    handleNonStackFilling(itemStack, baitItem, random);
+                } else {
+                    handleNonStackFilling(itemStack, baitItem, random);
+                }
+            }
+        }
+    }
 
-                        itemStack = insertItem(i, itemStack, false);
+    public void handleNonStackFilling(ItemStack itemStack, ItemStack baitItem, RandomSource random) {
+        for (int i = 0; i < getSlots(); i++) {
+            ItemStack stackInSlot = getStackInSlot(i);
+            if (!FTConfig.FULL_STACK_CATCH.get()) {
+                if (stackInSlot.isEmpty()) {
+
+                    itemStack = insertItem(i, itemStack, false);
+                    baitItem.shrink(1);
+                    if (itemStack.isEmpty()) {
+                        break;
+                    }
+                }
+            }
+            if (random.nextFloat() < FTConfig.FISH_BUCKET_CHANCE.get()) {
+                if (stackInSlot.is(Items.WATER_BUCKET)) {
+                    ResourceLocation regName =  BuiltInRegistries.ITEM.getKey(itemStack.getItem());
+                    ResourceLocation bucketFishLocation = ResourceLocation.fromNamespaceAndPath(Objects.requireNonNull(regName).getNamespace(), regName.getPath() + "_bucket");
+                    if (BuiltInRegistries.ITEM.containsKey(bucketFishLocation)) {
+                        stackInSlot.shrink(1);
+                        itemStack = insertItem(i, Objects.requireNonNull(BuiltInRegistries.ITEM.get(bucketFishLocation)).getDefaultInstance(), false);
                         baitItem.shrink(1);
                         if (itemStack.isEmpty()) {
                             break;
-                        }
-                    }
-                    if (random.nextFloat() < FTConfig.FISH_BUCKET_CHANCE.get()) {
-                        if (stackInSlot.is(Items.WATER_BUCKET)) {
-                            ResourceLocation regName =  BuiltInRegistries.ITEM.getKey(itemStack.getItem());
-                            ResourceLocation bucketFishLocation = ResourceLocation.fromNamespaceAndPath(Objects.requireNonNull(regName).getNamespace(), regName.getPath() + "_bucket");
-                            if (BuiltInRegistries.ITEM.containsKey(bucketFishLocation)) {
-                                stackInSlot.shrink(1);
-                                itemStack = insertItem(i, Objects.requireNonNull(BuiltInRegistries.ITEM.get(bucketFishLocation)).getDefaultInstance(), false);
-                                baitItem.shrink(1);
-                                if (itemStack.isEmpty()) {
-                                    break;
-                                }
-                            }
                         }
                     }
                 }
@@ -54,7 +68,7 @@ public class FTItemStackHandler extends ItemStackHandler {
 
     @Override
     protected int getStackLimit(int slot, ItemStack stack) {
-        return slot != 0 ? 1 : stack.getMaxStackSize();
+        return slot != 0 && !FTConfig.FULL_STACK_CATCH.get() ? 1 : stack.getMaxStackSize();
     }
 
     @Override
