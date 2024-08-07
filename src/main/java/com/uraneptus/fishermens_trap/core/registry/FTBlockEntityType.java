@@ -1,7 +1,6 @@
 package com.uraneptus.fishermens_trap.core.registry;
 
 import com.uraneptus.fishermens_trap.FishermensTrap;
-import com.uraneptus.fishermens_trap.common.blocks.FishtrapBlock;
 import com.uraneptus.fishermens_trap.common.blocks.FishtrapBlockEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;

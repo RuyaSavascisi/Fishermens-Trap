@@ -1,7 +1,6 @@
 package com.uraneptus.fishermens_trap;
 
 import com.mojang.logging.LogUtils;
-import com.uraneptus.fishermens_trap.client.screen.FishtrapScreen;
 import com.uraneptus.fishermens_trap.core.data.client.FTBlockStateProvider;
 import com.uraneptus.fishermens_trap.core.data.client.FTItemModelProvider;
 import com.uraneptus.fishermens_trap.core.data.client.FTLangProvider;
@@ -15,20 +14,14 @@ import com.uraneptus.fishermens_trap.core.registry.FTBlockEntityType;
 import com.uraneptus.fishermens_trap.core.registry.FTBlocks;
 import com.uraneptus.fishermens_trap.core.registry.FTItems;
 import com.uraneptus.fishermens_trap.core.registry.FTMenuType;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.ModLoadingContext;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.slf4j.Logger;
@@ -53,7 +46,6 @@ public class FishermensTrap {
         FTMenuType.MENU.register(bus);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, FTConfig.COMMON);
-        modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
 
     public void gatherData(GatherDataEvent event) {

@@ -1,7 +1,6 @@
 package com.uraneptus.fishermens_trap.integration;
 
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import vectorwing.farmersdelight.common.registry.ModItems;
 
 public class FarmersDelight {

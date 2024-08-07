@@ -2,7 +2,6 @@ package com.uraneptus.fishermens_trap.core.registry;
 
 import com.uraneptus.fishermens_trap.FishermensTrap;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
